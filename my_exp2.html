@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вимірювання періоду обертання та обертової частоти</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .experiment-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .circle-container {
+            position: relative;
+			float: right;
+            width: 400px;
+            height: 400px;
+            margin: 20px 0;
+        }
+        .circle {
+            position: absolute;
+            width: 300px; /* 2*радіус 15 см відображені в пікселях */
+            height: 300px;
+            border: 2px dashed #3498db;
+            border-radius: 50%;
+            top: 50px;
+            left: 50px;
+        }
+        .center-point {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: red;
+            border-radius: 50%;
+            top: 195px;
+            left: 195px;
+        }
+        .object {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+            top: 190px;
+            left: 190px;
+            cursor: pointer;
+            transform-origin: 0 150px;
+        }
+        .string {
+            position: absolute;
+            height: 1px;
+            background-color: #7f8c8d;
+            width: 150px;
+            top: 200px;
+            left: 200px;
+            transform-origin: 0 0;
+        }
+		.slider-container {
+            display: flex;
+            flex-direction: row;
+			justify-content:center;
+            width: 100%;
+        }        
+        .slider-with-value {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .controls {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        .results {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: 100%;
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .experiment-info {
+            margin: 20px 0;
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+		.experiment-steps {
+			display: flex;
+			flex-direction: row;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin-bottom: 20px;
+        }
+        .timer-display {
+            font-size: 24px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+        .revolution-counter {
+            font-size: 18px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+		<h1>Лабораторна робота № 2</h1>
+        <h2>Тема. Вимірювання періоду обертання та обертової частоти</h2>
+        
+    </header>
+
+    <div class="experiment-info">
+		<p><strong>Мета:</strong> виміряти період обертання та обертову частоту тіла під час його рівномірного руху по колу.</p>
+        <p><strong>Обладнання:</strong>Невелике тіло (ґудзик, ключ, кулька тощо); аркуш із зображенням кола радіусом 15 см; нитка завдовжки 50–60 см; секундомір; лінійка.</p>        
+    </div>
+	
+	<div class="experiment-steps">
+        <p><strong>Хід експерименту:</strong></p>
+        <ol>
+            <li>Візьміть за петлю нитки з тілом. Розташуйте руку над центром зображеного кола.</li>
+            <li>Примусьте тіло рухатися так, щоб траєкторія його руху збігалася з колом.</li>
+            <li>Виміряйте час t, за який тіло здійснює 10 обертів.</li>
+        </ol>
+		<img src="lab2.png">
+    </div>
+
+    <div class="experiment-container">
+        <div class="circle-container">
+            <div class="circle"></div>
+            <div class="center-point"></div>
+            <div class="string"></div>
+            <div class="object" id="object"></div>
+        </div>
+		
+		<div class="slider-container">
+            <label>Довжина нитки (см):</label>
+            <div class="slider-with-value">
+                <input type="range" id="stringLength" min="30" max="100" value="50" step="1">
+                 <span id="stringLengthValue">50 см</span>
+            </div>
+        </div>
+
+        <div class="revolution-counter">Кількість обертів: <span id="counter">0</span></div>
+        <div class="timer-display">Час: <span id="timer">00:00.0</span></div>
+
+        <div class="controls">
+            <button id="start-btn">Почати рух</button>
+            <button id="stop-btn" disabled>Зупинити</button>
+            <button id="reset-btn">Скинути</button>
+        </div>
+
+        <div class="results">
+            <h3>Результати вимірювань:</h3>
+            <table>
+                <tr>
+                    <th>Параметр</th>
+                    <th>Значення</th>
+                    <th>Формула</th>
+                </tr>
+                <tr>
+                    <td>Час 10 обертів, t</td>
+                    <td id="total-time">-</td>
+                    <td>Виміряно</td>
+                </tr>
+                <tr>
+                    <td>Період обертання, T</td>
+                    <td id="period">-</td>
+                    <td>T = t / 10</td>
+                </tr>
+                <tr>
+                    <td>Обертова частота, ν</td>
+                    <td id="frequency">-</td>
+                    <td>ν = 1 / T</td>
+                </tr>
+                <tr>
+                    <td>Радіус кола, r</td>
+                    <td>0.15 м</td>
+                    <td>Задано</td>
+                </tr>
+                <tr>
+                    <td>Швидкість руху, v</td>
+                    <td id="velocity">-</td>
+                    <td>v = 2πr / T</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Елементи інтерфейсу
+        const object = document.getElementById('object');
+        const string = document.querySelector('.string');
+        const startButton = document.getElementById('start-btn');
+        const stopButton = document.getElementById('stop-btn');
+        const resetButton = document.getElementById('reset-btn');
+        const counterDisplay = document.getElementById('counter');
+        const timerDisplay = document.getElementById('timer');
+        const totalTimeDisplay = document.getElementById('total-time');
+        const periodDisplay = document.getElementById('period');
+        const frequencyDisplay = document.getElementById('frequency');
+        const velocityDisplay = document.getElementById('velocity');
+		const stringLengthValueElem = document.getElementById('stringLengthValue');
+		const stringLengthInput = document.getElementById('stringLength');
+
+        // Змінні для анімації
+        let angle = -90; // Почати з верхньої точки кола
+        let animationId;
+        let isMoving = false;
+        let revolutionCount = 0;
+        let lastAngle = angle;
+        let startTime = null;
+        let elapsedTime = 0;
+        let timerInterval;
+		let stringLength = parseInt(stringLengthInput.value) / 100; // довжина нитки в метрах
+
+        // Константи
+        const RADIUS = 0.15; // м
+		//const LENGTH = stringLength; // м
+		const g = 9.8;
+        //const ANGULAR_VELOCITY = 1; // швидкість обертання в градусах за кадр анімації
+		let ANGULAR_VELOCITY = Math.sqrt(g/Math.sqrt(stringLength * stringLength - RADIUS * RADIUS)); // швидкість обертання в градусах за кадр анімації
+        const MAX_REVOLUTIONS = 10; // Максимальна кількість обертів
+
+        // Функція для оновлення довжини нитки
+        function updateStringLength() {
+            const lengthValue = parseInt(stringLengthInput.value);
+            stringLength = lengthValue / 100; // переведення в метри
+            
+            // Оновлюємо відображення довжини нитки
+            stringLengthValueElem.textContent = lengthValue + ' см';			
+			ANGULAR_VELOCITY = Math.sqrt(g/Math.sqrt(stringLength * stringLength - RADIUS * RADIUS));
+        }
+		
+		// При зміні довжини нитки оновлюємо відповідні змінні та візуальне представлення
+        stringLengthInput.addEventListener('input', updateStringLength);
+		
+		// Функція для оновлення позиції об'єкта
+        function updatePosition() {
+            // Оновлення кута
+            angle += ANGULAR_VELOCITY;
+            if (angle >= 270) {
+                angle = -90;
+            }
+
+            // Перевірка на завершення оберту
+            if (lastAngle > 0 && angle < 0) {
+                revolutionCount++;
+                counterDisplay.textContent = revolutionCount;
+                
+                // Якщо досягнуто 10 обертів, зупинити анімацію
+                if (revolutionCount >= MAX_REVOLUTIONS) {
+                    stopExperiment();
+                    calculateResults();
+                }
+            }
+            lastAngle = angle;
+
+            // Оновлення позиції об'єкта та нитки
+            const radians = angle * Math.PI / 180;
+            object.style.transform = `translate(${150 * Math.cos(radians)}px, ${150 * Math.sin(radians)}px)`;
+            string.style.transform = `rotate(${angle}deg)`;
+
+            // Продовження анімації
+            if (isMoving) {
+                animationId = requestAnimationFrame(updatePosition);
+            }
+        }
+
+        // Функція для форматування часу
+        function formatTime(timeInMs) {
+            const minutes = Math.floor(timeInMs / 60000);
+            const seconds = Math.floor((timeInMs % 60000) / 1000);
+            const milliseconds = Math.floor((timeInMs % 1000) / 100);
+            
+            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds}`;
+        }
+
+        // Функція для оновлення таймера
+        function updateTimer() {
+            const currentTime = Date.now();
+            elapsedTime = currentTime - startTime;
+            timerDisplay.textContent = formatTime(elapsedTime);
+        }
+
+        // Функція для розрахунку результатів
+        function calculateResults() {
+            const timeInSeconds = elapsedTime / 1000;
+            // const period = timeInSeconds / MAX_REVOLUTIONS;
+			const period = timeInSeconds / revolutionCount;
+            const frequency = 1 / period;
+            const velocity = 2 * Math.PI * RADIUS / period;
+            
+            totalTimeDisplay.textContent = timeInSeconds.toFixed(2) + ' с';
+            periodDisplay.textContent = period.toFixed(2) + ' с';
+            frequencyDisplay.textContent = frequency.toFixed(2) + ' Гц';
+            velocityDisplay.textContent = velocity.toFixed(5) + ' м/с';
+        }
+
+        // Функція для запуску експерименту
+        function startExperiment() {
+            if (!isMoving) {
+                isMoving = true;
+                startButton.disabled = true;
+                stopButton.disabled = false;
+                resetButton.disabled = true;
+                
+                // Запуск таймера
+                startTime = Date.now();
+                timerInterval = setInterval(updateTimer, 100);
+                
+                // Запуск анімації
+                animationId = requestAnimationFrame(updatePosition);
+            }
+        }
+
+        // Функція для зупинки експерименту
+        function stopExperiment() {
+            if (isMoving) {
+                isMoving = false;
+                //startButton.disabled = true;
+                stopButton.disabled = true;
+                resetButton.disabled = false;
+                
+                // Зупинка таймера та анімації
+                clearInterval(timerInterval);
+                cancelAnimationFrame(animationId);
+                
+                // Розрахунок результатів
+                calculateResults();
+            }
+        }
+
+        // Функція для скидання експерименту
+        function resetExperiment() {
+            isMoving = false;
+            revolutionCount = 0;
+            angle = -90;
+            lastAngle = angle;
+            startTime = null;
+            elapsedTime = 0;
+            
+            // Скидання інтерфейсу
+            counterDisplay.textContent = '0';
+            timerDisplay.textContent = '00:00.0';
+            totalTimeDisplay.textContent = '-';
+            periodDisplay.textContent = '-';
+            frequencyDisplay.textContent = '-';
+            velocityDisplay.textContent = '-';
+            
+            // Скидання позиції об'єкта та нитки
+            const radians = angle * Math.PI / 180;
+            object.style.transform = `translate(${150 * Math.cos(radians)}px, ${150 * Math.sin(radians)}px)`;
+            string.style.transform = `rotate(${angle}deg)`;
+            
+            // Скидання кнопок
+            startButton.disabled = false;
+            stopButton.disabled = true;
+            resetButton.disabled = false;
+            
+            // Зупинка таймера та анімації
+            clearInterval(timerInterval);
+            cancelAnimationFrame(animationId);
+        }
+
+        // Додавання обробників подій для кнопок
+        startButton.addEventListener('click', startExperiment);
+        stopButton.addEventListener('click', stopExperiment);
+        resetButton.addEventListener('click', resetExperiment);
+
+        // Ініціалізація початкового положення
+        resetExperiment();
+    </script>
+</body>
+</html>
